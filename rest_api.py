@@ -1,7 +1,7 @@
 import json
 import typing
-from fastapi import FastAPI
-from starlette.responses import Response
+from fastapi import FastAPI, Request
+from starlette.responses import Response, JSONResponse
 
 from elastic_data import connection
 
@@ -26,7 +26,20 @@ app = FastAPI()
 async def test():
     return {"test": "successful!"}
 
+
 @app.get("/homes", response_class=PrettyJSONResponse)
 async def getHomes():
     json = connection.get_json_by_index('housing_test')
     return json
+
+
+@app.get("/index/{index_name}", response_class=PrettyJSONResponse)
+async def getHomes(index_name: str):
+    json = connection.get_json_by_index(index_name)
+    return json
+
+async def value_error_exception_handler(request: Request):
+    return JSONResponse(
+        status_code=400,
+        content={"message": "Error, probably index name not found"},
+    )
